@@ -22,10 +22,16 @@
 - runtime.txt
   - デプロイ先で使用する言語とバージョン
 
-
+## setup
 heroku config:set CHANNEL_ACCESS_TOKEN="" --app imagelength
-
 heroku config:set CHANNEL_SECRET="" --app imagelength
+
+git remote add heroku heroku_git_url
+
+
+## loginできないとき
+http://neos21.hatenablog.com/entry/2019/02/14/080000
+
 
 ## 参考
 - https://qiita.com/ryoma30/items/d07bd96f8ce3ecefa172

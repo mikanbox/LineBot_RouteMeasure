@@ -22,6 +22,13 @@ YOUR_CHANNEL_SECRET = os.environ["CHANNEL_SECRET"]
 line_bot_api = LineBotApi(YOUR_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(YOUR_CHANNEL_SECRET)
 
+
+@app.route("/")
+def hello():
+    return "Hello World!"
+
+
+
 @app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
@@ -36,18 +43,20 @@ def callback():
         handler.handle(body, signature)
     except InvalidSignatureError:
         abort(400)
-
     return 'OK'
 
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    print(event)
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=event.message.text))
 
 
+
 if __name__ == "__main__":
-#    app.run()
-    port = int(os.getenv("PORT"))
+    port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
+
