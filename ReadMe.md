@@ -29,6 +29,11 @@ heroku config:set CHANNEL_SECRET="" --app imagelength
 git remote add heroku heroku_git_url
 
 
+## 手元で動かす
+export CHANNEL_ACCESS_TOKEN
+export CHANNEL_SECRET
+python hello.py
+
 ## loginできないとき
 http://neos21.hatenablog.com/entry/2019/02/14/080000
 
