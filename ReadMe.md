@@ -12,7 +12,7 @@ git remote add heroku heroku_git_url
 export CHANNEL_ACCESS_TOKEN
 export CHANNEL_SECRET
 python hello.py
-FlaskのcallbackはPOSTメソッドなので、ブラウザからは確認できないよ!!
+FlaskのcallbackはPOSTメソッドonlyなので、ブラウザからは確認できないよ!!
 
 ## mainのコード概要
 
