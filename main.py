@@ -113,16 +113,16 @@ def handle_image(event):
     image = BytesIO(message_content.content)
 
     # # Pillowで開く
-    img = Image.open(img_bin)
+    img = Image.open(image)
 
     # # こっから処理
     width, height = img.size
 
-    if (width * height > 700000):
-        reply_txt = "画像サイズが大きすぎるよ..!!!"
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=reply_txt))
+    # if (width * height > 700000):
+    #     reply_txt = "画像サイズが大きすぎるよ..!!!"
+    #     line_bot_api.reply_message(
+    #         event.reply_token,
+    #         TextSendMessage(text=reply_txt))
 
     reply_txt = "画像がきた！"
 
