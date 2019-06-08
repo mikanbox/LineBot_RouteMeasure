@@ -124,47 +124,47 @@ def handle_image(event):
             event.reply_token,
             TextSendMessage(text=reply_txt))
 
-    reply_txt = "画像がきた！"
+    # reply_txt = "画像がきた！"
 
+    # line_bot_api.reply_message(
+    #     event.reply_token,
+    #     TextSendMessage(text=reply_txt))
+
+
+    img_pixels = []
+    for i in range(height * width):
+        # getpixel((x,y))で左からx番目,上からy番目のピクセルの色を取得し、img_pixelsに追加する
+        pixcel = img.getpixel((i % width, i / width))
+        pix = []
+        pix.append(pixcel[0])
+        pix.append(pixcel[1])
+        pix.append(pixcel[2])
+        pix = np.array(pix)
+        img_pixels.append(pix)
+    # あとで計算しやすいようにnumpyのarrayに変換しておく
+    img_pixels = np.array(img_pixels)
+
+    print("  ----------  ")
+    dotsColorList = DotsColorList()
+    dotsColorList.addColor([0, 255, 0], "green")
+    dotsColorList.addColor([0, 0, 255], "Blue")
+    dotsColorList.addColor([255, 255, 0], "Yellow")
+    dotsColorList.addColor([255, 0, 255], "Purpule")
+    dotsColorList.addColor([255, 0, 0], "red")
+
+    cnt = 0
+    method = dotsColorList.searchDot
+    # 各色の面積をカウント
+    # ボトルネック
+    for i in img_pixels:
+        method(i)
+
+    # dotsColorList.outputPrintRatio()
+
+    reply_txt = dotsColorList.outputStringRatio
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply_txt))
-
-
-    # img_pixels = []
-    # for i in range(height * width):
-    #     # getpixel((x,y))で左からx番目,上からy番目のピクセルの色を取得し、img_pixelsに追加する
-    #     pixcel = img.getpixel((i % width, i / width))
-    #     pix = []
-    #     pix.append(pixcel[0])
-    #     pix.append(pixcel[1])
-    #     pix.append(pixcel[2])
-    #     pix = np.array(pix)
-    #     img_pixels.append(pix)
-    # # あとで計算しやすいようにnumpyのarrayに変換しておく
-    # img_pixels = np.array(img_pixels)
-
-    # print("  ----------  ")
-    # dotsColorList = DotsColorList()
-    # dotsColorList.addColor([0, 255, 0], "green")
-    # dotsColorList.addColor([0, 0, 255], "Blue")
-    # dotsColorList.addColor([255, 255, 0], "Yellow")
-    # dotsColorList.addColor([255, 0, 255], "Purpule")
-    # dotsColorList.addColor([255, 0, 0], "red")
-
-    # cnt = 0
-    # method = dotsColorList.searchDot
-    # # 各色の面積をカウント
-    # # ボトルネック
-    # for i in img_pixels:
-    #     method(i)
-
-    # # dotsColorList.outputPrintRatio()
-
-    # reply_txt = dotsColorList.outputStringRatio
-    # line_bot_api.reply_message(
-    #     event.reply_token,
-        # TextSendMessage(text=reply_txt))
 
 
 
