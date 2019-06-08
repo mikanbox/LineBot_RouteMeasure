@@ -110,7 +110,7 @@ def handle_image(event):
 
     # 画像データを取得する
     message_content = line_bot_api.get_message_content(message_id)
-    image = BytesIO(message_content.content)
+    # image = BytesIO(message_content.content)
 
     reply_txt = "画像がきた！"
 
