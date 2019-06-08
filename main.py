@@ -36,6 +36,8 @@ class ColorDot:
         self.name = name
 
 
+_diff = 20
+
 class DotsColorList:
     ColorList = []
 
@@ -53,12 +55,12 @@ class DotsColorList:
 
     def searchDotNear(self, col):
         for c in self.ColorList:
-            isVaild = True
-            for (coli, ci) in zip(col, c):
-                if ( not (ci <= coli+10 and ci >= coli - 10) ):
-                    isValid = False
-            if (isValid):
-                  c.count+=1
+            ival = True
+            for (coli, ci) in zip(col, c.color):
+                if (not ( int(ci) <= int(coli) + _diff and int(ci) >= int(coli) - _diff)):
+                    ival = False
+            if (ival):
+                c.count += 1
 
     def outputPrint(self):
         for c in self.ColorList:
