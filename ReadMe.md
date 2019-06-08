@@ -9,9 +9,9 @@ heroku config:set CHANNEL_SECRET="" --app imagelength
 git remote add heroku heroku_git_url
 
 ## 手元で動かす
-export CHANNEL_ACCESS_TOKEN
-export CHANNEL_SECRET
-python hello.py
+export CHANNEL_ACCESS_TOKEN=xxxxxxxxxxxxxx
+export CHANNEL_SECRET=xxxxxxxxxxxxxx
+python main.py
 FlaskのcallbackはPOSTメソッドonlyなので、ブラウザからは確認できないよ!!
 
 ## mainのコード概要
