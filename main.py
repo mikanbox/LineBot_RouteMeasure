@@ -51,6 +51,15 @@ class DotsColorList:
             if (col == c.color).all():
                 c.count += 1
 
+    def searchDotNear(self, col):
+        for c in self.ColorList:
+            isVaild = True
+            for (coli, ci) in zip(col, c):
+                if ( not (ci <= coli+10 and ci >= coli - 10) ):
+                    isValid = False
+            if (isValid):
+                  c.count+=1
+
     def outputPrint(self):
         for c in self.ColorList:
             print(c.name + "  " + str(c.count))
@@ -148,11 +157,8 @@ def handle_image(event):
     dotsColorList.addColor([255, 0, 255], "Purpule")
     dotsColorList.addColor([255, 0, 0], "red")
 
-
-
-
     cnt = 0
-    method = dotsColorList.searchDot
+    method = dotsColorList.searchDotNear
     # 各色の面積をカウント
     # ボトルネック
     for i in img_pixels:
@@ -168,11 +174,6 @@ def handle_image(event):
         TextSendMessage(text=reply_txt))
 
 
-
-
-
-
-
 if __name__ == "__main__":
-    port=int(os.getenv("PORT", 5000))
-    app.run(host = "0.0.0.0", port = port)
+    port = int(os.getenv("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
