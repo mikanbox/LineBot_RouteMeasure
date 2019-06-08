@@ -124,13 +124,6 @@ def handle_image(event):
             event.reply_token,
             TextSendMessage(text=reply_txt))
 
-    # reply_txt = "画像がきた！"
-
-    # line_bot_api.reply_message(
-    #     event.reply_token,
-    #     TextSendMessage(text=reply_txt))
-
-
     img_pixels = []
     for i in range(height * width):
         # getpixel((x,y))で左からx番目,上からy番目のピクセルの色を取得し、img_pixelsに追加する
@@ -153,10 +146,6 @@ def handle_image(event):
     dotsColorList.addColor([255, 0, 0], "red")
 
 
-    # reply_txt = "画像がきた！"
-    # line_bot_api.reply_message(
-    #     event.reply_token,
-    #     TextSendMessage(text=reply_txt))
 
 
     cnt = 0
@@ -167,17 +156,11 @@ def handle_image(event):
         method(i)
 
     # dotsColorList.outputPrintRatio()
-    reply_txt = "画像がきた！"
+    reply_txt = dotsColorList.outputStringRatio()
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply_txt))
 
-
-
-    reply_txt = dotsColorList.outputStringRatio
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=reply_txt))
 
 
 
