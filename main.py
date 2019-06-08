@@ -12,10 +12,9 @@ from linebot.models import (
 import os
 
 
-
 app = Flask(__name__)
 
-
+# 環境変数からLINEのトークンを読み込み
 YOUR_CHANNEL_ACCESS_TOKEN = os.environ["CHANNEL_ACCESS_TOKEN"]
 YOUR_CHANNEL_SECRET = os.environ["CHANNEL_SECRET"]
 
@@ -23,12 +22,13 @@ line_bot_api = LineBotApi(YOUR_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(YOUR_CHANNEL_SECRET)
 
 
+
 @app.route("/")
 def hello():
     return "Hello World!"
 
 
-
+# LINE APIにアプリがあることを知らせるためのもの
 @app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
@@ -47,11 +47,17 @@ def callback():
     return 'OK'
 
 
+
+# メッセージが来た時の反応
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    message_txt = event.message.text
+
+    reply_txt = "ルート画像を送ってね"
+
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=event.message.text))
+        TextSendMessage(text=reply_txt))
 
 
 
