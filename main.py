@@ -152,6 +152,13 @@ def handle_image(event):
     dotsColorList.addColor([255, 0, 255], "Purpule")
     dotsColorList.addColor([255, 0, 0], "red")
 
+
+    reply_txt = "画像がきた！"
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=reply_txt))
+
+
     cnt = 0
     method = dotsColorList.searchDot
     # 各色の面積をカウント
