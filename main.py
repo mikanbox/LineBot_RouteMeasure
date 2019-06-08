@@ -7,7 +7,7 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage,ImageMessage
+    MessageEvent, TextMessage, TextSendMessage, ImageMessage
 )
 import os
 
@@ -164,7 +164,7 @@ def handle_image(event):
     # reply_txt = dotsColorList.outputStringRatio
     # line_bot_api.reply_message(
     #     event.reply_token,
-        TextSendMessage(text=reply_txt))
+        # TextSendMessage(text=reply_txt))
 
 
 
@@ -172,5 +172,5 @@ def handle_image(event):
 
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    port=int(os.getenv("PORT", 5000))
+    app.run(host = "0.0.0.0", port = port)
