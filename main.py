@@ -108,28 +108,29 @@ def handle_image(event):
     reply_txt = ""
     message_id = event.message.id
 
+    # 画像データを取得する
+    message_content = line_bot_api.get_message_content(message_id)
+    image = BytesIO(message_content.content)
+
+    # # Pillowで開く
+    img = Image.open(img_bin)
+
+    # # こっから処理
+    width, height = img.size
+
+    if (width * height > 700, 000):
+        reply_txt = "画像サイズが大きすぎるよ..!!!"
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=reply_txt))
+        return
+
     reply_txt = "画像がきた！"
 
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply_txt))
 
-    # 画像データを取得する
-    # message_content = line_bot_api.get_message_content(message_id)
-    # image = BytesIO(message_content.content)
-
-    # # Pillowで開く
-    # img = Image.open(img_bin)
-
-    # # こっから処理
-    # width, height = img.size
-
-    # if (width * height > 700, 000):
-    #     reply_txt = "画像サイズが大きすぎるよ..!!!"
-    #     line_bot_api.reply_message(
-    #         event.reply_token,
-    #         TextSendMessage(text=reply_txt))
-    #     return
 
     # img_pixels = []
     # for i in range(height * width):
