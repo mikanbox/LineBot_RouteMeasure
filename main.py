@@ -43,6 +43,9 @@ class DotsColorList:
         item = ColorDot(col, name)
         self.ColorList.append(item)
 
+    def removeColor(self):
+        self.ColorList.clear()
+
     def searchDot(self, col):
         for c in self.ColorList:
             if (col == c.color).all():
@@ -157,6 +160,9 @@ def handle_image(event):
 
     # dotsColorList.outputPrintRatio()
     reply_txt = dotsColorList.outputStringRatio()
+
+    dotsColorList.removeColor()
+
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply_txt))
