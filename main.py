@@ -109,9 +109,15 @@ bubble = BubbleContainer(
                 height='sm',
                 action=PostbackAction(
                                       label='赤', data='color'),
-                ),
+            ),
             # separator
-            SeparatorComponent()
+            SeparatorComponent(),
+            ButtonComponent(
+                style='link',
+                height='sm',
+                action=PostbackAction(
+                                      label='青', data='color', text = 'Col'),
+            ),
 
         ]
     )
