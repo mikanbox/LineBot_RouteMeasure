@@ -222,14 +222,16 @@ def handle_image(event):
 
 # ポストバックイベントでカラーを登録する
 @handler.add(PostbackEvent)
-def handle_image(event):
+def handle_postback(event):
+
     message_txt = event.message.text
 
     reply_txt = "色を登録したよ"
 
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=reply_txt))
+        "date_picker2"
+    )
 
 
 def flaskMessage(event):
