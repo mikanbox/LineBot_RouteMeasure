@@ -103,25 +103,18 @@ bubble = BubbleContainer(
         layout='vertical',
         spacing='sm',
         contents=[
-                # callAction, separator, websiteAction
-                SpacerComponent(size='sm'),
-                # callAction
-                ButtonComponent(
-                    style='link',
-                    height='sm',
-                    action=URIAction(label='CALL', uri='tel:000000'),
+            SpacerComponent(size='sm'),
+            ButtonComponent(
+                style='link',
+                height='sm',
+                action=PostbackAction(
+                                      label='CALL', data='color', text='Color'),
                 ),
             # separator
-            SeparatorComponent(),
-            # websiteAction
-            ButtonComponent(
-                    style='link',
-                    height='sm',
-                    action=URIAction(
-                        label='WEBSITE', uri="https://example.com")
-                    )
+            SeparatorComponent()
+
         ]
-    ),
+    )
 )
 
 
