@@ -1,16 +1,26 @@
 from flask import Flask, request, abort
 
-from linebot import (
-    LineBotApi, WebhookHandler
-)
-from linebot.exceptions import (
-    InvalidSignatureError
-)
+from linebot import (LineBotApi, WebhookHandler)
+from linebot.exceptions import (InvalidSignatureError)
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage, ImageMessage
+    MessageEvent, TextMessage, TextSendMessage,
+    SourceUser, SourceGroup, SourceRoom,
+    TemplateSendMessage, ConfirmTemplate, MessageAction,
+    ButtonsTemplate, ImageCarouselTemplate, ImageCarouselColumn, URIAction,
+    PostbackAction, DatetimePickerAction,
+    CameraAction, CameraRollAction, LocationAction,
+    CarouselTemplate, CarouselColumn, PostbackEvent,
+    StickerMessage, StickerSendMessage, LocationMessage, LocationSendMessage,
+    ImageMessage, VideoMessage, AudioMessage, FileMessage,
+    UnfollowEvent, FollowEvent, JoinEvent, LeaveEvent, BeaconEvent,
+    FlexSendMessage, BubbleContainer, ImageComponent, BoxComponent,
+    TextComponent, SpacerComponent, IconComponent, ButtonComponent,
+    SeparatorComponent, QuickReply, QuickReplyButton
 )
 import os
 from io import BytesIO
+
+
 
 app = Flask(__name__)
 
@@ -21,9 +31,12 @@ YOUR_CHANNEL_SECRET = os.environ["CHANNEL_SECRET"]
 line_bot_api = LineBotApi(YOUR_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(YOUR_CHANNEL_SECRET)
 
-
 from PIL import Image
 import numpy as np
+
+
+_userStateDict ={}
+
 
 
 class ColorDot:
@@ -34,7 +47,6 @@ class ColorDot:
     def __init__(self, col, name):
         self.color = np.array(col)
         self.name = name
-
 
 _diff = 20
 
@@ -80,6 +92,9 @@ class DotsColorList:
         return mes
 
 
+
+
+
 @app.route("/")
 def hello():
     return "Hello World!"
@@ -88,19 +103,17 @@ def hello():
 # LINE APIにアプリがあることを知らせるためのもの
 @app.route("/callback", methods=['POST'])
 def callback():
-    # get X-Line-Signature header value
+
     signature = request.headers['X-Line-Signature']
 
-    # get request body as text
     body = request.get_data(as_text=True)
+
     app.logger.info("Request body: " + body)
 
-    # handle webhook body
     try:
         handler.handle(body, signature)
     except InvalidSignatureError:
         abort(400)
-
     return 'OK'
 
 
@@ -111,9 +124,11 @@ def handle_message(event):
 
     reply_txt = "ルート画像を送ってね"
 
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=reply_txt))
+    flaskMessage(event)
+
+    # line_bot_api.reply_message(
+    #     event.reply_token,
+    #     TextSendMessage(text=reply_txt))
 
 
 # 画像が来たときの反応
@@ -174,6 +189,126 @@ def handle_image(event):
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply_txt))
+
+
+
+
+def flaskMessage(event):
+    reply_txt = ""
+    message_txt = event.message.text
+    bubble = BubbleContainer(
+            direction='ltr',
+            hero=ImageComponent(
+                url='https://example.com/cafe.jpg',
+                size='full',
+                aspect_ratio='20:13',
+                aspect_mode='cover',
+                action=URIAction(uri='http://example.com', label='label')
+            ),
+            body=BoxComponent(
+                layout='vertical',
+                contents=[
+                    # title
+                    TextComponent(text='Brown Cafe', weight='bold', size='xl'),
+                    # review
+                    BoxComponent(
+                        layout='baseline',
+                        margin='md',
+                        contents=[
+                            IconComponent(size='sm', url='https://example.com/gold_star.png'),
+                            IconComponent(size='sm', url='https://example.com/grey_star.png'),
+                            IconComponent(size='sm', url='https://example.com/gold_star.png'),
+                            IconComponent(size='sm', url='https://example.com/gold_star.png'),
+                            IconComponent(size='sm', url='https://example.com/grey_star.png'),
+                            TextComponent(text='4.0', size='sm', color='#999999', margin='md',
+                                          flex=0)
+                        ]
+                    ),
+                    # info
+                    BoxComponent(
+                        layout='vertical',
+                        margin='lg',
+                        spacing='sm',
+                        contents=[
+                            BoxComponent(
+                                layout='baseline',
+                                spacing='sm',
+                                contents=[
+                                    TextComponent(
+                                        text='Place',
+                                        color='#aaaaaa',
+                                        size='sm',
+                                        flex=1
+                                    ),
+                                    TextComponent(
+                                        text='Shinjuku, Tokyo',
+                                        wrap=True,
+                                        color='#666666',
+                                        size='sm',
+                                        flex=5
+                                    )
+                                ],
+                            ),
+                            BoxComponent(
+                                layout='baseline',
+                                spacing='sm',
+                                contents=[
+                                    TextComponent(
+                                        text='Time',
+                                        color='#aaaaaa',
+                                        size='sm',
+                                        flex=1
+                                    ),
+                                    TextComponent(
+                                        text="10:00 - 23:00",
+                                        wrap=True,
+                                        color='#666666',
+                                        size='sm',
+                                        flex=5,
+                                    ),
+                                ],
+                            ),
+                        ],
+                    )
+                ],
+            ),
+            footer=BoxComponent(
+                layout='vertical',
+                spacing='sm',
+                contents=[
+                    # callAction, separator, websiteAction
+                    SpacerComponent(size='sm'),
+                    # callAction
+                    ButtonComponent(
+                        style='link',
+                        height='sm',
+                        action=URIAction(label='CALL', uri='tel:000000'),
+                    ),
+                    # separator
+                    SeparatorComponent(),
+                    # websiteAction
+                    ButtonComponent(
+                        style='link',
+                        height='sm',
+                        action=URIAction(label='WEBSITE', uri="https://example.com")
+                    )
+                ]
+            ),
+        )
+
+
+    Flexmessage = FlexSendMessage(alt_text="hello", contents=bubble)
+    line_bot_api.reply_message(
+        event.reply_token,
+        Flexmessage
+    )
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
