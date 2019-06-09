@@ -21,7 +21,6 @@ import os
 from io import BytesIO
 
 
-
 app = Flask(__name__)
 
 # 環境変数からLINEのトークンを読み込み
@@ -35,8 +34,7 @@ from PIL import Image
 import numpy as np
 
 
-_userStateDict ={}
-
+_userStateDict = {}
 
 
 class ColorDot:
@@ -49,6 +47,7 @@ class ColorDot:
         self.name = name
 
 _diff = 20
+
 
 class DotsColorList:
     ColorList = []
@@ -69,7 +68,7 @@ class DotsColorList:
         for c in self.ColorList:
             ival = True
             for (coli, ci) in zip(col, c.color):
-                if (not ( int(ci) <= int(coli) + _diff and int(ci) >= int(coli) - _diff)):
+                if (not (int(ci) <= int(coli) + _diff and int(ci) >= int(coli) - _diff)):
                     ival = False
             if (ival):
                 c.count += 1
@@ -92,7 +91,38 @@ class DotsColorList:
         return mes
 
 
-
+bubble = BubbleContainer(
+    direction='ltr',
+    body=BoxComponent(
+        layout='vertical',
+        contents=[
+            TextComponent(text='ルートで使う色を登録してね', weight='bold', size='xl')
+        ]
+    ),
+    footer=BoxComponent(
+        layout='vertical',
+        spacing='sm',
+        contents=[
+                # callAction, separator, websiteAction
+                SpacerComponent(size='sm'),
+                # callAction
+                ButtonComponent(
+                    style='link',
+                    height='sm',
+                    action=URIAction(label='CALL', uri='tel:000000'),
+                ),
+            # separator
+            SeparatorComponent(),
+            # websiteAction
+            ButtonComponent(
+                    style='link',
+                    height='sm',
+                    action=URIAction(
+                        label='WEBSITE', uri="https://example.com")
+                    )
+        ]
+    ),
+)
 
 
 @app.route("/")
@@ -191,124 +221,27 @@ def handle_image(event):
         TextSendMessage(text=reply_txt))
 
 
+# ポストバックイベントでカラーを登録する
+@handler.add(PostbackEvent)
+def handle_image(event):
+    message_txt = event.message.text
+
+    reply_txt = "色を登録したよ"
+
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=reply_txt))
 
 
 def flaskMessage(event):
     reply_txt = ""
     message_txt = event.message.text
-    bubble = BubbleContainer(
-            direction='ltr',
-            hero=ImageComponent(
-                url='https://example.com/cafe.jpg',
-                size='full',
-                aspect_ratio='20:13',
-                aspect_mode='cover',
-                action=URIAction(uri='http://example.com', label='label')
-            ),
-            body=BoxComponent(
-                layout='vertical',
-                contents=[
-                    # title
-                    TextComponent(text='Brown Cafe', weight='bold', size='xl'),
-                    # review
-                    BoxComponent(
-                        layout='baseline',
-                        margin='md',
-                        contents=[
-                            IconComponent(size='sm', url='https://example.com/gold_star.png'),
-                            IconComponent(size='sm', url='https://example.com/grey_star.png'),
-                            IconComponent(size='sm', url='https://example.com/gold_star.png'),
-                            IconComponent(size='sm', url='https://example.com/gold_star.png'),
-                            IconComponent(size='sm', url='https://example.com/grey_star.png'),
-                            TextComponent(text='4.0', size='sm', color='#999999', margin='md',
-                                          flex=0)
-                        ]
-                    ),
-                    # info
-                    BoxComponent(
-                        layout='vertical',
-                        margin='lg',
-                        spacing='sm',
-                        contents=[
-                            BoxComponent(
-                                layout='baseline',
-                                spacing='sm',
-                                contents=[
-                                    TextComponent(
-                                        text='Place',
-                                        color='#aaaaaa',
-                                        size='sm',
-                                        flex=1
-                                    ),
-                                    TextComponent(
-                                        text='Shinjuku, Tokyo',
-                                        wrap=True,
-                                        color='#666666',
-                                        size='sm',
-                                        flex=5
-                                    )
-                                ],
-                            ),
-                            BoxComponent(
-                                layout='baseline',
-                                spacing='sm',
-                                contents=[
-                                    TextComponent(
-                                        text='Time',
-                                        color='#aaaaaa',
-                                        size='sm',
-                                        flex=1
-                                    ),
-                                    TextComponent(
-                                        text="10:00 - 23:00",
-                                        wrap=True,
-                                        color='#666666',
-                                        size='sm',
-                                        flex=5,
-                                    ),
-                                ],
-                            ),
-                        ],
-                    )
-                ],
-            ),
-            footer=BoxComponent(
-                layout='vertical',
-                spacing='sm',
-                contents=[
-                    # callAction, separator, websiteAction
-                    SpacerComponent(size='sm'),
-                    # callAction
-                    ButtonComponent(
-                        style='link',
-                        height='sm',
-                        action=URIAction(label='CALL', uri='tel:000000'),
-                    ),
-                    # separator
-                    SeparatorComponent(),
-                    # websiteAction
-                    ButtonComponent(
-                        style='link',
-                        height='sm',
-                        action=URIAction(label='WEBSITE', uri="https://example.com")
-                    )
-                ]
-            ),
-        )
-
 
     Flexmessage = FlexSendMessage(alt_text="hello", contents=bubble)
     line_bot_api.reply_message(
         event.reply_token,
         Flexmessage
     )
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":
