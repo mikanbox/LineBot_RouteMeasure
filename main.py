@@ -232,14 +232,9 @@ def handle_postback(event):
     user_id = event.source.user_id
     postback_msg = event.postback.data
 
-    message_txt = event.message.text
 
     reply_txt = "色を登録したよ"
 
-    # line_bot_api.reply_message(
-    #     event.reply_token,
-    #     "date_picker2"
-    # )
     line_bot_api.push_message(
         to=user_id,
         messages=TextSendMessage(text=reply_txt)
