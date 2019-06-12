@@ -112,11 +112,16 @@ bubble = BubbleContainer(
             ),
             # separator
             SeparatorComponent(),
+            # ButtonComponent(
+            #     style='button',
+            #     height='sm',
+            #     action=PostbackAction(
+            #                           label='青', data='color', text = 'Col'),
+            # ),
             ButtonComponent(
-                style='button',
+                style='link',
                 height='sm',
-                action=PostbackAction(
-                                      label='青', data='color', text = 'Col'),
+                action=URIAction(label='CALL', uri='tel:000000'),
             ),
 
         ]
@@ -223,14 +228,21 @@ def handle_image(event):
 # ポストバックイベントでカラーを登録する
 @handler.add(PostbackEvent)
 def handle_postback(event):
+    reply_token = event.reply_token
+    user_id = event.source.user_id
+    postback_msg = event.postback.data
 
     message_txt = event.message.text
 
     reply_txt = "色を登録したよ"
 
-    line_bot_api.reply_message(
-        event.reply_token,
-        "date_picker2"
+    # line_bot_api.reply_message(
+    #     event.reply_token,
+    #     "date_picker2"
+    # )
+    line_bot_api.push_message(
+        to=user_id,
+        messages=TextSendMessage(text=reply_txt)
     )
 
 

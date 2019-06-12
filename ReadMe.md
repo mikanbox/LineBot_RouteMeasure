@@ -47,5 +47,6 @@ http://neos21.hatenablog.com/entry/2019/02/14/080000
 
 ## 参考資料
 - https://qiita.com/ryoma30/items/d07bd96f8ce3ecefa172
-
+- FlexMessage Sim
+  - https://developers.line.biz/console/fx/
 
