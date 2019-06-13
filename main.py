@@ -297,7 +297,7 @@ def handle_image(event):
     print("user_id : " + user_id)
 
     if (user_id in _userStateDict):
-        del(_userStateDict['user_id']['color'])
+        del(_userStateDict['user_id'])
 
     # 画像データを取得する
     _userStateDict[user_id] = {}
