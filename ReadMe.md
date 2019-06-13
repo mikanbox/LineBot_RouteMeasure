@@ -42,7 +42,7 @@ FlaskのcallbackはPOSTメソッドonlyなので、ブラウザからは確認�
   - デプロイ先で使用する言語とバージョン
 
 ## webhook URL
-- https://linebot-ryotei-kun.herokuapp.com/callback
+- https://imagelength.herokuapp.com/callback
 
 
 ## debug

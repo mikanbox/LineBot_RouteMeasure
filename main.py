@@ -78,7 +78,7 @@ class DotsColorList:
             print(c.name + "  " + str(c.count))
 
     def outputPrintRatio(self):
-        default = float(self.ColorList[0].count)
+        default = float(self.ColorList[0].count)+0.000001
         for c in self.ColorList:
             print(c.name + "  " + '{:.4f}'.format(float(c.count) / default))
 
