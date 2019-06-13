@@ -19,7 +19,7 @@ from linebot.models import (
 )
 import os
 from io import BytesIO
-# from tinydb import TinyDB, Query
+from tinydb import TinyDB, Query
 
 
 app = Flask(__name__)
@@ -93,7 +93,7 @@ class DotsColorList:
 
 
 #データベースの作成
-# db = TinyDB('sample.json')
+db = TinyDB('sample.json')
 
 
 bubble = BubbleContainer(
@@ -219,7 +219,10 @@ def handle_postback(event):
     #                               )
     #     return
 
-    if _userStateDict[user_id]['state'] != "getImage":
+    # if _userStateDict[user_id]['state'] != "getImage":
+
+    que = Query()
+    if not( db.search(que.id == user_id)):
         reply_txt = "先に画像を上げてね！"
         line_bot_api.push_message(to=user_id,
                                   messages=TextSendMessage(text=reply_txt)
@@ -235,6 +238,8 @@ def handle_postback(event):
         if len(_userStateDict[user_id]['color']) > 0:
             reply_txt = RunCompareLines(user_id)
             # del(_userStateDict[user_id])
+            db.remove(que.id == user_id)
+
         else:
             reply_txt = "エラー　ルートの色が登録されてないよ"
     else:
@@ -313,8 +318,11 @@ def handle_image(event):
     user_id = event.source.user_id
     print("user_id : " + user_id)
 
+
     if (user_id in _userStateDict):
-        del(_userStateDict['user_id'])
+        del(_userStateDict[user_id])
+
+    db.insert({'id':user_id, 'state':True})
 
     # 画像データを取得する
     _userStateDict[user_id] = {}
