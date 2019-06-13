@@ -202,6 +202,7 @@ def handle_postback(event):
     reply_token = event.reply_token
     user_id = event.source.user_id
     postback_msg = event.postback.data
+    print("user_id : " + user_id)
 
 
     if (user_id not in _userStateDict):
@@ -277,6 +278,8 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     message_txt = event.message.text
+    user_id = event.source.user_id
+    print("user_id : " + user_id)
 
     reply_txt = "ルート画像を送ってね"
 
@@ -291,6 +294,7 @@ def handle_image(event):
     reply_txt = ""
     message_id = event.message.id
     user_id = event.source.user_id
+    print("user_id : " + user_id)
 
     if (user_id in _userStateDict):
         del(_userStateDict['user_id'])
