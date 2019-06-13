@@ -19,6 +19,7 @@ from linebot.models import (
 )
 import os
 from io import BytesIO
+# from tinydb import TinyDB, Query
 
 
 app = Flask(__name__)
@@ -91,6 +92,10 @@ class DotsColorList:
         return mes
 
 
+#データベースの作成
+# db = TinyDB('sample.json')
+
+
 bubble = BubbleContainer(
     direction='ltr',
     body=BoxComponent(
@@ -141,6 +146,8 @@ bubble = BubbleContainer(
         ]
     )
 )
+
+
 
 
 def RunCompareLines(userid):
@@ -205,12 +212,22 @@ def handle_postback(event):
     print("user_id : " + user_id)
 
 
-    if (user_id not in _userStateDict):
+    # if (user_id not in _userStateDict):
+    #     reply_txt = "先に画像を上げてね！"
+    #     line_bot_api.push_message(to=user_id,
+    #                               messages=TextSendMessage(text=reply_txt)
+    #                               )
+    #     return
+
+    if _userStateDict[user_id]['state'] != "getImage":
         reply_txt = "先に画像を上げてね！"
         line_bot_api.push_message(to=user_id,
                                   messages=TextSendMessage(text=reply_txt)
                                   )
         return
+
+
+
 
 
     reply_txt = "エラー　色が存在しません。"
