@@ -301,12 +301,13 @@ def handle_image(event):
 
     # 画像データを取得する
     _userStateDict[user_id] = {}
+    _userStateDict[user_id]['state'] = "getImage"
     _userStateDict[user_id][
         'image'] = line_bot_api.get_message_content(message_id)
     _userStateDict[user_id]['color'] = []
+    
 
-    # _userStateDict[user_id] = line_bot_api.get_message_content(message_id)
-    # message_content = line_bot_api.get_message_content(message_id)
+
     # flex messageを送信
     flexMessage(event)
 
