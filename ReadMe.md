@@ -40,6 +40,16 @@ FlaskのcallbackはPOSTメソッドonlyなので、ブラウザからは確認�
 - runtime.txt
   - デプロイ先で使用する言語とバージョン
 
+## webhook URL
+- https://linebot-ryotei-kun.herokuapp.com/callback
+
+
+## debug
+- https://qiita.com/yamatmoo/items/8d5c2ffe6edf54c91957
+
+python main.py
+ngrok http 5000
+LINEのwebhook URLに登録
 
 
 ## loginできないときは下記を参考
@@ -49,4 +59,5 @@ http://neos21.hatenablog.com/entry/2019/02/14/080000
 - https://qiita.com/ryoma30/items/d07bd96f8ce3ecefa172
 - FlexMessage Sim
   - https://developers.line.biz/console/fx/
+- https://developers.line.biz/ja/reference/messaging-api/#postback-action
 

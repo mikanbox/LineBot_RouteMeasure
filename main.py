@@ -105,76 +105,47 @@ bubble = BubbleContainer(
         contents=[
             SpacerComponent(size='sm'),
             ButtonComponent(
-                style='button',
-                height='sm',
-                action=PostbackAction(
-                                      label='赤', data='color'),
+                style='primary', height='sm',
+                action=PostbackAction(label='赤 ff0000', data='c_red'),
+                color='#ff4444'
             ),
-            # separator
             SeparatorComponent(),
-            # ButtonComponent(
-            #     style='button',
-            #     height='sm',
-            #     action=PostbackAction(
-            #                           label='青', data='color', text = 'Col'),
-            # ),
             ButtonComponent(
-                style='link',
-                height='sm',
-                action=URIAction(label='CALL', uri='tel:000000'),
+                style='primary', height='sm',
+                action=PostbackAction(label='青 0000ff', data='c_blue'),
+                color='#4444ff'
             ),
-
+            SeparatorComponent(),
+            ButtonComponent(
+                style='secondary', height='sm',
+                action=PostbackAction(label='黄 ffff00', data='c_yellow'),
+                color='#ffff44'
+            ),
+            SeparatorComponent(),
+            ButtonComponent(
+                style='secondary', height='sm',
+                action=PostbackAction(label='マゼンタ ff00ff', data='c_mazenta'),
+                color='#ff44ff'
+            ),
+            SeparatorComponent(),
+            ButtonComponent(
+                style='secondary', height='sm',
+                action=PostbackAction(label='シアン 00ffff', data='c_cian'),
+                color='#44ffff'
+            ),
+            SeparatorComponent(),
+            ButtonComponent(
+                style='primary',margin='xxl',
+                action=PostbackAction(label='比較実行', data='run')
+            )
         ]
     )
 )
 
 
-@app.route("/")
-def hello():
-    return "Hello World!"
-
-
-# LINE APIにアプリがあることを知らせるためのもの
-@app.route("/callback", methods=['POST'])
-def callback():
-
-    signature = request.headers['X-Line-Signature']
-
-    body = request.get_data(as_text=True)
-
-    app.logger.info("Request body: " + body)
-
-    try:
-        handler.handle(body, signature)
-    except InvalidSignatureError:
-        abort(400)
-    return 'OK'
-
-
-# メッセージが来た時の反応
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    message_txt = event.message.text
-
-    reply_txt = "ルート画像を送ってね"
-
-    flaskMessage(event)
-
-    # line_bot_api.reply_message(
-    #     event.reply_token,
-    #     TextSendMessage(text=reply_txt))
-
-
-# 画像が来たときの反応
-@handler.add(MessageEvent, message=ImageMessage)
-def handle_image(event):
-    reply_txt = ""
-    message_id = event.message.id
-
-    # 画像データを取得する
-    message_content = line_bot_api.get_message_content(message_id)
-
-    image = BytesIO(message_content.content)
+def RunCompareLines(userid):
+    image = BytesIO(_userStateDict[userid]['image'].content)
+    # image = BytesIO(message_content.content)
     # # Pillowで開く
     img = Image.open(image)
 
@@ -202,11 +173,8 @@ def handle_image(event):
 
     print("  ----------  ")
     dotsColorList = DotsColorList()
-    dotsColorList.addColor([0, 255, 0], "green")
-    dotsColorList.addColor([0, 0, 255], "Blue")
-    dotsColorList.addColor([255, 255, 0], "Yellow")
-    dotsColorList.addColor([255, 0, 255], "Purpule")
-    dotsColorList.addColor([255, 0, 0], "red")
+    for c in _userStateDict[userid]['color']:
+        dotsColorList.addColor(c[0], c[1])
 
     cnt = 0
     method = dotsColorList.searchDotNear
@@ -220,36 +188,123 @@ def handle_image(event):
 
     dotsColorList.removeColor()
 
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=reply_txt))
+    return reply_txt
+
+    # line_bot_api.reply_message(
+    #     event.reply_token,
+    #     TextSendMessage(text=reply_txt))
 
 
 # ポストバックイベントでカラーを登録する
 @handler.add(PostbackEvent)
 def handle_postback(event):
+    print("getPostBack")
     reply_token = event.reply_token
     user_id = event.source.user_id
     postback_msg = event.postback.data
 
 
-    reply_txt = "色を登録したよ"
+    if (user_id not in _userStateDict):
+        reply_txt = "先に画像を上げてね！"
+        line_bot_api.push_message(to=user_id,
+                                  messages=TextSendMessage(text=reply_txt)
+                                  )
+        return
 
-    line_bot_api.push_message(
-        to=user_id,
-        messages=TextSendMessage(text=reply_txt)
-    )
+
+    reply_txt = "エラー　色が存在しません。"
+    if postback_msg == 'run':
+        if len(_userStateDict[user_id]['color']) > 0:
+            reply_txt = RunCompareLines(user_id)
+            del(_userStateDict[user_id])
+        else:
+            reply_txt = "エラー　ルートの色が登録されてないよ"
+    else:
+        if postback_msg == 'c_red':
+            reply_txt = "赤色を登録したよ"
+            _userStateDict[user_id]['color'].append([[255, 0, 0], "red"])
+        elif postback_msg == 'c_blue':
+            reply_txt = "青色を登録したよ"
+            _userStateDict[user_id]['color'].append([[0, 0, 255], "blue"])
+        elif postback_msg == 'c_yellow':
+            reply_txt = "黄色を登録したよ"
+            _userStateDict[user_id]['color'].append([[255, 255, 0], "Yellow"])
+        elif postback_msg == 'c_cian':
+            reply_txt = "シアンを登録したよ"
+            _userStateDict[user_id]['color'].append([[0, 255, 255], "Cian"])
+        elif postback_msg == 'c_mazenta':
+            reply_txt = "マゼンタを登録したよ"
+            _userStateDict[user_id]['color'].append([[255, 0, 255], "Mazenta"])
+
+    line_bot_api.push_message(to=user_id,
+                              messages=TextSendMessage(text=reply_txt)
+                              )
 
 
-def flaskMessage(event):
+#  flex message送るだけ
+def flexMessage(event):
+    print("sendFlex")
     reply_txt = ""
-    message_txt = event.message.text
 
     Flexmessage = FlexSendMessage(alt_text="hello", contents=bubble)
     line_bot_api.reply_message(
         event.reply_token,
         Flexmessage
     )
+
+
+@app.route("/")
+def hello():
+    return "Hello World!"
+
+# LINE APIにアプリがあることを知らせるためのもの
+
+
+@app.route("/callback", methods=['POST'])
+def callback():
+    signature = request.headers['X-Line-Signature']
+    body = request.get_data(as_text=True)
+    app.logger.info("Request body: " + body)
+    try:
+        handler.handle(body, signature)
+    except InvalidSignatureError:
+        abort(400)
+    return 'OK'
+
+# メッセージが来た時の反応
+
+
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    message_txt = event.message.text
+
+    reply_txt = "ルート画像を送ってね"
+
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=reply_txt))
+
+
+# 画像が来たときの反応
+@handler.add(MessageEvent, message=ImageMessage)
+def handle_image(event):
+    reply_txt = ""
+    message_id = event.message.id
+    user_id = event.source.user_id
+
+    if (user_id in _userStateDict):
+        del(_userStateDict['user_id'])
+
+    # 画像データを取得する
+    _userStateDict[user_id] = {}
+    _userStateDict[user_id][
+        'image'] = line_bot_api.get_message_content(message_id)
+    _userStateDict[user_id]['color'] = []
+
+    # _userStateDict[user_id] = line_bot_api.get_message_content(message_id)
+    # message_content = line_bot_api.get_message_content(message_id)
+    # flex messageを送信
+    flexMessage(event)
 
 
 if __name__ == "__main__":
