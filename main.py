@@ -217,7 +217,7 @@ def handle_postback(event):
     if postback_msg == 'run':
         if len(_userStateDict[user_id]['color']) > 0:
             reply_txt = RunCompareLines(user_id)
-            del(_userStateDict[user_id])
+            # del(_userStateDict[user_id])
         else:
             reply_txt = "エラー　ルートの色が登録されてないよ"
     else:
@@ -297,7 +297,7 @@ def handle_image(event):
     print("user_id : " + user_id)
 
     if (user_id in _userStateDict):
-        del(_userStateDict['user_id'])
+        del(_userStateDict['user_id']['color'])
 
     # 画像データを取得する
     _userStateDict[user_id] = {}
@@ -306,6 +306,7 @@ def handle_image(event):
         'image'] = line_bot_api.get_message_content(message_id)
     _userStateDict[user_id]['color'] = []
     
+
 
 
     # flex messageを送信
