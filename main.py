@@ -221,7 +221,7 @@ def handle_postback(event):
                                   )
         return
 
-    pprint(_userStateDict)
+    print(vars(_userStateDict))
 
     reply_txt = "エラー　色が存在しません。"
     if postback_msg == 'run':
