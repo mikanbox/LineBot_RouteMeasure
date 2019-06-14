@@ -212,7 +212,6 @@ def handle_postback(event):
     postback_msg = event.postback.data
     print("user_id : " + user_id)
     print("getPostBack")
-    pprint(_userStateDict)
 
 
     if (user_id not in _userStateDict):
@@ -222,6 +221,7 @@ def handle_postback(event):
                                   )
         return
 
+    pprint(_userStateDict)
 
     reply_txt = "エラー　色が存在しません。"
     if postback_msg == 'run':
