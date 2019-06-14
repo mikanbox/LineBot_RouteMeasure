@@ -1,4 +1,5 @@
 from flask import Flask, request, abort
+
 from linebot import (LineBotApi, WebhookHandler)
 from linebot.exceptions import (InvalidSignatureError)
 from linebot.models import (
@@ -18,10 +19,7 @@ from linebot.models import (
 )
 import os
 from io import BytesIO
-from tinydb import TinyDB, Query
-from PIL import Image
-import numpy as np
-import base64
+
 
 app = Flask(__name__)
 
@@ -32,12 +30,11 @@ YOUR_CHANNEL_SECRET = os.environ["CHANNEL_SECRET"]
 line_bot_api = LineBotApi(YOUR_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(YOUR_CHANNEL_SECRET)
 
+from PIL import Image
+import numpy as np
 
 
-#データベースの作成
-db = TinyDB('userData.json')
-_diff = 20
-
+_userStateDict = {}
 
 
 class ColorDot:
@@ -48,6 +45,9 @@ class ColorDot:
     def __init__(self, col, name):
         self.color = np.array(col)
         self.name = name
+
+_diff = 20
+
 
 class DotsColorList:
     ColorList = []
@@ -89,11 +89,6 @@ class DotsColorList:
             mes += c.name + "  " + \
                 '{:.4f}'.format(float(c.count) / default) + "\n"
         return mes
-
-def push_textMessage(user_id,texts):
-    line_bot_api.push_message(to=user_id,
-                          messages=TextSendMessage(text=texts)
-                          )
 
 
 bubble = BubbleContainer(
@@ -148,140 +143,11 @@ bubble = BubbleContainer(
 )
 
 
-
-# ポストバックイベントでカラーを登録する
-@handler.add(PostbackEvent)
-def handle_postback(event):
-    reply_token = event.reply_token
-    user_id = event.source.user_id
-    postback_msg = event.postback.data
-    print("user_id : " + user_id)
-
-
-
-    que = Query()
-    if not (db.search(que.id == user_id) ):
-        push_textMessage(user_id, "先に画像を上げてね！")
-        return
-
-
-
-    reply_txt = "エラー　色が存在しません。"
-    if postback_msg == 'run':
-        userdat = db.search(que.id == user_id)
-        colors = userdat[0]['color']
-        img = userdat[0]['imgbin']
-        if len(colors) > 0:
-            reply_txt = RunCompareLines(user_id,img,colors)
-            db.remove(que.id  == user_id)
-            
-        else:
-            reply_txt = "エラー　ルートの色が登録されてないよ"
-    else:
-
-        userdat = db.search(que.id == user_id)
-        colors = userdat[0]['color']
-
-        if postback_msg == 'c_red':
-            colors.append([[255, 0, 0], "red"])
-            reply_txt = "赤色を登録したよ"
-        elif postback_msg == 'c_blue':
-            reply_txt = "青色を登録したよ"
-            colors.append([[0, 0, 255], "blue"])
-        elif postback_msg == 'c_yellow':
-            reply_txt = "黄色を登録したよ"
-            colors.append([[255, 255, 0], "Yellow"])
-        elif postback_msg == 'c_cian':
-            reply_txt = "シアンを登録したよ"
-            colors.append([[0, 255, 255], "Cian"])
-        elif postback_msg == 'c_mazenta':
-            reply_txt = "マゼンタを登録したよ"
-            colors.append([[255, 0, 255], "Mazenta"])
-
-        db.update({'color':colors}, que.id == user_id)
-
-
-    push_textMessage(user_id, reply_txt)
-
-
-
-
-
-# 画像が来たときの反応
-@handler.add(MessageEvent, message=ImageMessage)
-def handle_image(event):
-    message_id = event.message.id
-    user_id = event.source.user_id
-    img = line_bot_api.get_message_content(message_id)
-    print("user_id : " + user_id)
-
-
-    que = Query()
-    if db.search(que.id == user_id):
-        db.remove(que.id  == user_id)
-
-    db.insert({
-              'id':user_id,
-              'color':[],
-              'imgbin':base64.b64encode(img.content).decode('utf-8')
-     })
-
-    # flex messageを送信
-    flexMessage(event)
-
-
-
-
-
-#  flex message送るだけ
-def flexMessage(event):
-    print("sendFlex")
-    reply_txt = ""
-
-    Flexmessage = FlexSendMessage(alt_text="hello", contents=bubble)
-    line_bot_api.reply_message(
-        event.reply_token,
-        Flexmessage
-    )
-
-
-@app.route("/")
-def hello():
-    return "Hello World!"
-
-
-
-# LINE APIにアプリがあることを知らせるためのもの
-@app.route("/callback", methods=['POST'])
-def callback():
-    signature = request.headers['X-Line-Signature']
-    body = request.get_data(as_text=True)
-    app.logger.info("Request body: " + body)
-    try:
-        handler.handle(body, signature)
-    except InvalidSignatureError:
-        abort(400)
-    return 'OK'
-
-
-# メッセージが来た時の反応
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    message_txt = event.message.text
-    user_id = event.source.user_id
-    print("user_id : " + user_id)
-
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text="ルート画像を送ってね"))
-
-
-def RunCompareLines(userid,img,colors):
+def RunCompareLines(userid):
+    image = BytesIO(_userStateDict[userid]['image'].content)
+    # image = BytesIO(message_content.content)
     # # Pillowで開く
-    img_binary = base64.b64decode(img)
-    img_binary = BytesIO(img_binary)
-
-    img = Image.open(img_binary)
+    img = Image.open(image)
 
     # # こっから処理
     width, height = img.size
@@ -307,7 +173,7 @@ def RunCompareLines(userid,img,colors):
 
     print("  ----------  ")
     dotsColorList = DotsColorList()
-    for c in colors:
+    for c in _userStateDict[userid]['color']:
         dotsColorList.addColor(c[0], c[1])
 
     cnt = 0
@@ -317,16 +183,136 @@ def RunCompareLines(userid,img,colors):
     for i in img_pixels:
         method(i)
 
+    # dotsColorList.outputPrintRatio()
     reply_txt = dotsColorList.outputStringRatio()
+
     dotsColorList.removeColor()
 
     return reply_txt
 
+    # line_bot_api.reply_message(
+    #     event.reply_token,
+    #     TextSendMessage(text=reply_txt))
 
+
+# ポストバックイベントでカラーを登録する
+@handler.add(PostbackEvent)
+def handle_postback(event):
+    print("getPostBack")
+    reply_token = event.reply_token
+    user_id = event.source.user_id
+    postback_msg = event.postback.data
+    print("user_id : " + user_id)
+
+
+    if (user_id not in _userStateDict):
+        reply_txt = "先に画像を上げてね！"
+        line_bot_api.push_message(to=user_id,
+                                  messages=TextSendMessage(text=reply_txt)
+                                  )
+        return
+
+
+    reply_txt = "エラー　色が存在しません。"
+    if postback_msg == 'run':
+        if len(_userStateDict[user_id]['color']) > 0:
+            reply_txt = RunCompareLines(user_id)
+            # del(_userStateDict[user_id])
+        else:
+            reply_txt = "エラー　ルートの色が登録されてないよ"
+    else:
+        if postback_msg == 'c_red':
+            reply_txt = "赤色を登録したよ"
+            _userStateDict[user_id]['color'].append([[255, 0, 0], "red"])
+        elif postback_msg == 'c_blue':
+            reply_txt = "青色を登録したよ"
+            _userStateDict[user_id]['color'].append([[0, 0, 255], "blue"])
+        elif postback_msg == 'c_yellow':
+            reply_txt = "黄色を登録したよ"
+            _userStateDict[user_id]['color'].append([[255, 255, 0], "Yellow"])
+        elif postback_msg == 'c_cian':
+            reply_txt = "シアンを登録したよ"
+            _userStateDict[user_id]['color'].append([[0, 255, 255], "Cian"])
+        elif postback_msg == 'c_mazenta':
+            reply_txt = "マゼンタを登録したよ"
+            _userStateDict[user_id]['color'].append([[255, 0, 255], "Mazenta"])
+
+    line_bot_api.push_message(to=user_id,
+                              messages=TextSendMessage(text=reply_txt)
+                              )
+
+
+#  flex message送るだけ
+def flexMessage(event):
+    print("sendFlex")
+    reply_txt = ""
+
+    Flexmessage = FlexSendMessage(alt_text="hello", contents=bubble)
+    line_bot_api.reply_message(
+        event.reply_token,
+        Flexmessage
+    )
+
+
+@app.route("/")
+def hello():
+    return "Hello World!"
+
+# LINE APIにアプリがあることを知らせるためのもの
+
+
+@app.route("/callback", methods=['POST'])
+def callback():
+    signature = request.headers['X-Line-Signature']
+    body = request.get_data(as_text=True)
+    app.logger.info("Request body: " + body)
+    try:
+        handler.handle(body, signature)
+    except InvalidSignatureError:
+        abort(400)
+    return 'OK'
+
+# メッセージが来た時の反応
+
+
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    message_txt = event.message.text
+    user_id = event.source.user_id
+    print("user_id : " + user_id)
+
+    reply_txt = "ルート画像を送ってね"
+
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=reply_txt))
+
+
+# 画像が来たときの反応
+@handler.add(MessageEvent, message=ImageMessage)
+def handle_image(event):
+    reply_txt = ""
+    message_id = event.message.id
+    user_id = event.source.user_id
+    print("user_id : " + user_id)
+
+    if (user_id in _userStateDict):
+        del(_userStateDict[user_id]['color'])
+
+    # 画像データを取得する
+    _userStateDict[user_id] = {}
+    _userStateDict[user_id]['state'] = "getImage"
+    _userStateDict[user_id][
+        'image'] = line_bot_api.get_message_content(message_id)
+    _userStateDict[user_id]['color'] = []
+    
+
+
+
+    # flex messageを送信
+    flexMessage(event)
 
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
-

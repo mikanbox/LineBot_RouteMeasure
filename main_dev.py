@@ -1,4 +1,5 @@
 from flask import Flask, request, abort
+
 from linebot import (LineBotApi, WebhookHandler)
 from linebot.exceptions import (InvalidSignatureError)
 from linebot.models import (
@@ -18,10 +19,6 @@ from linebot.models import (
 )
 import os
 from io import BytesIO
-from tinydb import TinyDB, Query
-from PIL import Image
-import numpy as np
-import base64
 
 app = Flask(__name__)
 
@@ -32,11 +29,9 @@ YOUR_CHANNEL_SECRET = os.environ["CHANNEL_SECRET"]
 line_bot_api = LineBotApi(YOUR_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(YOUR_CHANNEL_SECRET)
 
-
-
-#データベースの作成
-db = TinyDB('userData.json')
-_diff = 20
+from PIL import Image
+import numpy as np
+import time
 
 
 
@@ -89,11 +84,6 @@ class DotsColorList:
             mes += c.name + "  " + \
                 '{:.4f}'.format(float(c.count) / default) + "\n"
         return mes
-
-def push_textMessage(user_id,texts):
-    line_bot_api.push_message(to=user_id,
-                          messages=TextSendMessage(text=texts)
-                          )
 
 
 bubble = BubbleContainer(
@@ -148,6 +138,12 @@ bubble = BubbleContainer(
 )
 
 
+_diff = 20
+_img = None
+_colors = []
+_userid = None
+_time = 0
+
 
 # ポストバックイベントでカラーを登録する
 @handler.add(PostbackEvent)
@@ -155,54 +151,44 @@ def handle_postback(event):
     reply_token = event.reply_token
     user_id = event.source.user_id
     postback_msg = event.postback.data
+    ut = time.time()
     print("user_id : " + user_id)
 
 
-
-    que = Query()
-    if not (db.search(que.id == user_id) ):
-        push_textMessage(user_id, "先に画像を上げてね！")
+    if (_img == None or ut > _time + 120):
+        reply_txt = "先に画像を上げてね！"
+        line_bot_api.push_message(to=user_id,
+                                  messages=TextSendMessage(text=reply_txt)
+                                  )
         return
-
 
 
     reply_txt = "エラー　色が存在しません。"
     if postback_msg == 'run':
-        userdat = db.search(que.id == user_id)
-        colors = userdat[0]['color']
-        img = userdat[0]['imgbin']
-        if len(colors) > 0:
-            reply_txt = RunCompareLines(user_id,img,colors)
-            db.remove(que.id  == user_id)
-            
+        if len(_colors) > 0:
+            reply_txt = RunCompareLines(user_id,_img,_colors)
         else:
             reply_txt = "エラー　ルートの色が登録されてないよ"
     else:
-
-        userdat = db.search(que.id == user_id)
-        colors = userdat[0]['color']
-
         if postback_msg == 'c_red':
-            colors.append([[255, 0, 0], "red"])
             reply_txt = "赤色を登録したよ"
+            _colors.append([[255, 0, 0], "red"])
         elif postback_msg == 'c_blue':
             reply_txt = "青色を登録したよ"
-            colors.append([[0, 0, 255], "blue"])
+            _colors.append([[0, 0, 255], "blue"])
         elif postback_msg == 'c_yellow':
             reply_txt = "黄色を登録したよ"
-            colors.append([[255, 255, 0], "Yellow"])
+            _colors.append([[255, 255, 0], "Yellow"])
         elif postback_msg == 'c_cian':
             reply_txt = "シアンを登録したよ"
-            colors.append([[0, 255, 255], "Cian"])
+            _colors.append([[0, 255, 255], "Cian"])
         elif postback_msg == 'c_mazenta':
             reply_txt = "マゼンタを登録したよ"
-            colors.append([[255, 0, 255], "Mazenta"])
+            _colors.append([[255, 0, 255], "Mazenta"])
 
-        db.update({'color':colors}, que.id == user_id)
-
-
-    push_textMessage(user_id, reply_txt)
-
+    line_bot_api.push_message(to=user_id,
+                              messages=TextSendMessage(text=reply_txt)
+                              )
 
 
 
@@ -212,22 +198,20 @@ def handle_postback(event):
 def handle_image(event):
     message_id = event.message.id
     user_id = event.source.user_id
-    img = line_bot_api.get_message_content(message_id)
     print("user_id : " + user_id)
+    ut = time.time()
+
+    if _userid==None or _userid == user_id:
+        _img = line_bot_api.get_message_content(message_id)
+        _userid = user_id
+        # flex messageを送信
+        flexMessage(event)
 
 
-    que = Query()
-    if db.search(que.id == user_id):
-        db.remove(que.id  == user_id)
-
-    db.insert({
-              'id':user_id,
-              'color':[],
-              'imgbin':base64.b64encode(img.content).decode('utf-8')
-     })
-
-    # flex messageを送信
-    flexMessage(event)
+    reply_txt = "他の人がbot使ってます。ちょっとまってね"
+    line_bot_api.push_message(to=user_id,
+                              messages=TextSendMessage(text=reply_txt)
+                              )
 
 
 
@@ -249,9 +233,9 @@ def flexMessage(event):
 def hello():
     return "Hello World!"
 
-
-
 # LINE APIにアプリがあることを知らせるためのもの
+
+
 @app.route("/callback", methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
@@ -263,25 +247,26 @@ def callback():
         abort(400)
     return 'OK'
 
-
 # メッセージが来た時の反応
+
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     message_txt = event.message.text
     user_id = event.source.user_id
     print("user_id : " + user_id)
 
+    reply_txt = "ルート画像を送ってね"
+
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text="ルート画像を送ってね"))
+        TextSendMessage(text=reply_txt))
 
 
 def RunCompareLines(userid,img,colors):
+    image = img.content
     # # Pillowで開く
-    img_binary = base64.b64decode(img)
-    img_binary = BytesIO(img_binary)
-
-    img = Image.open(img_binary)
+    img = Image.open(image)
 
     # # こっから処理
     width, height = img.size
@@ -328,5 +313,3 @@ def RunCompareLines(userid,img,colors):
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
-
