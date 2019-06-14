@@ -149,88 +149,6 @@ bubble = BubbleContainer(
 
 
 
-# ポストバックイベントでカラーを登録する
-@handler.add(PostbackEvent)
-def handle_postback(event):
-    reply_token = event.reply_token
-    user_id = event.source.user_id
-    postback_msg = event.postback.data
-    print("user_id : " + user_id)
-
-
-
-    que = Query()
-    if not (db.search(que.id == user_id) ):
-        push_textMessage(user_id, "先に画像を上げてね！")
-        return
-
-
-
-    reply_txt = "エラー　色が存在しません。"
-    if postback_msg == 'run':
-        userdat = db.search(que.id == user_id)
-        colors = userdat[0]['color']
-        img = userdat[0]['imgbin']
-        if len(colors) > 0:
-            reply_txt = RunCompareLines(user_id,img,colors)
-            db.remove(que.id  == user_id)
-            
-        else:
-            reply_txt = "エラー　ルートの色が登録されてないよ"
-    else:
-
-        userdat = db.search(que.id == user_id)
-        colors = userdat[0]['color']
-
-        if postback_msg == 'c_red':
-            colors.append([[255, 0, 0], "red"])
-            reply_txt = "赤色を登録したよ"
-        elif postback_msg == 'c_blue':
-            reply_txt = "青色を登録したよ"
-            colors.append([[0, 0, 255], "blue"])
-        elif postback_msg == 'c_yellow':
-            reply_txt = "黄色を登録したよ"
-            colors.append([[255, 255, 0], "Yellow"])
-        elif postback_msg == 'c_cian':
-            reply_txt = "シアンを登録したよ"
-            colors.append([[0, 255, 255], "Cian"])
-        elif postback_msg == 'c_mazenta':
-            reply_txt = "マゼンタを登録したよ"
-            colors.append([[255, 0, 255], "Mazenta"])
-
-        db.update({'color':colors}, que.id == user_id)
-
-
-    push_textMessage(user_id, reply_txt)
-
-
-
-
-
-# 画像が来たときの反応
-@handler.add(MessageEvent, message=ImageMessage)
-def handle_image(event):
-    message_id = event.message.id
-    user_id = event.source.user_id
-    img = line_bot_api.get_message_content(message_id)
-    print("user_id : " + user_id)
-
-
-    que = Query()
-    if db.search(que.id == user_id):
-        db.remove(que.id  == user_id)
-
-    db.insert({
-              'id':user_id,
-              'color':[],
-              'imgbin':base64.b64encode(img.content).decode('utf-8')
-     })
-
-    # flex messageを送信
-    flexMessage(event)
-
-
-
 
 
 #  flex message送るだけ
@@ -274,6 +192,85 @@ def handle_message(event):
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text="ルート画像を送ってね"))
+
+
+# ポストバックイベントでカラーを登録する
+@handler.add(PostbackEvent)
+def handle_postback(event):
+    reply_token = event.reply_token
+    user_id = event.source.user_id
+    postback_msg = event.postback.data
+    print("user_id : " + user_id)
+
+
+
+    que = Query()
+    if not (db.search(que.id == user_id) ):
+        push_textMessage(user_id, "先に画像を上げてね！")
+        return
+
+
+
+    reply_txt = "エラー　色が存在しません。"
+    if postback_msg == 'run':
+        userdat = db.search(que.id == user_id)
+        colors = userdat[0]['color']
+        img = userdat[0]['imgbin']
+        if len(colors) > 0:
+            reply_txt = RunCompareLines(user_id,img,colors)
+            db.remove(que.id  == user_id)
+
+        else:
+            reply_txt = "エラー　ルートの色が登録されてないよ"
+    else:
+
+        userdat = db.search(que.id == user_id)
+        colors = userdat[0]['color']
+
+        if postback_msg == 'c_red':
+            colors.append([[255, 0, 0], "red"])
+            reply_txt = "赤色を登録したよ"
+        elif postback_msg == 'c_blue':
+            reply_txt = "青色を登録したよ"
+            colors.append([[0, 0, 255], "blue"])
+        elif postback_msg == 'c_yellow':
+            reply_txt = "黄色を登録したよ"
+            colors.append([[255, 255, 0], "Yellow"])
+        elif postback_msg == 'c_cian':
+            reply_txt = "シアンを登録したよ"
+            colors.append([[0, 255, 255], "Cian"])
+        elif postback_msg == 'c_mazenta':
+            reply_txt = "マゼンタを登録したよ"
+            colors.append([[255, 0, 255], "Mazenta"])
+
+        db.update({'color':colors}, que.id == user_id)
+
+
+    push_textMessage(user_id, reply_txt)
+
+# 画像が来たときの反応
+@handler.add(MessageEvent, message=ImageMessage)
+def handle_image(event):
+    message_id = event.message.id
+    user_id = event.source.user_id
+    img = line_bot_api.get_message_content(message_id)
+    print("user_id : " + user_id)
+
+
+    que = Query()
+    if db.search(que.id == user_id):
+        db.remove(que.id  == user_id)
+
+    db.insert({
+              'id':user_id,
+              'color':[],
+              'imgbin':base64.b64encode(img.content).decode('utf-8')
+     })
+
+    # flex messageを送信
+    flexMessage(event)
+
+
 
 
 def RunCompareLines(userid,img,colors):
