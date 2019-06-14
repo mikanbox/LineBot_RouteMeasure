@@ -142,7 +142,6 @@ bubble = BubbleContainer(
     )
 )
 
-
 def RunCompareLines(userid):
     image = BytesIO(_userStateDict[userid]['image'].content)
     # image = BytesIO(message_content.content)
@@ -198,11 +197,11 @@ def RunCompareLines(userid):
 # ポストバックイベントでカラーを登録する
 @handler.add(PostbackEvent)
 def handle_postback(event):
-    print("getPostBack")
     reply_token = event.reply_token
     user_id = event.source.user_id
     postback_msg = event.postback.data
     print("user_id : " + user_id)
+    print("getPostBack")
 
 
     if (user_id not in _userStateDict):
@@ -217,13 +216,14 @@ def handle_postback(event):
     if postback_msg == 'run':
         if len(_userStateDict[user_id]['color']) > 0:
             reply_txt = RunCompareLines(user_id)
-            # del(_userStateDict[user_id])
+            del(_userStateDict[user_id])
+
+
         else:
             reply_txt = "エラー　ルートの色が登録されてないよ"
     else:
         if 'color' not in _userStateDict[user_id]:
             _userStateDict[user_id]['color'] = []
-
         if postback_msg == 'c_red':
             reply_txt = "赤色を登録したよ"
             _userStateDict[user_id]['color'].append([[255, 0, 0], "red"])
@@ -243,6 +243,41 @@ def handle_postback(event):
     line_bot_api.push_message(to=user_id,
                               messages=TextSendMessage(text=reply_txt)
                               )
+
+
+
+
+# 画像が来たときの反応
+@handler.add(MessageEvent, message=ImageMessage)
+def handle_image(event):
+    reply_txt = ""
+    message_id = event.message.id
+    user_id = event.source.user_id
+    print("user_id : " + user_id)
+
+    if (user_id in _userStateDict):
+        del(_userStateDict[user_id])
+
+
+    # 画像データを取得する
+    _userStateDict.setdefault(user_id,{})
+    _userStateDict[user_id].setdefault('color',[])
+
+    # _userStateDict[user_id] = {}
+    _userStateDict[user_id]['state'] = "getImage"
+    _userStateDict[user_id][
+        'image'] = line_bot_api.get_message_content(message_id)
+    
+
+
+
+    # flex messageを送信
+    flexMessage(event)
+
+
+
+
+
 
 
 #  flex message送るだけ
@@ -289,30 +324,6 @@ def handle_message(event):
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply_txt))
-
-
-# 画像が来たときの反応
-@handler.add(MessageEvent, message=ImageMessage)
-def handle_image(event):
-    reply_txt = ""
-    message_id = event.message.id
-    user_id = event.source.user_id
-    print("user_id : " + user_id)
-
-    if (user_id in _userStateDict):
-        del(_userStateDict[user_id]['color'])
-
-    # 画像データを取得する
-    _userStateDict[user_id] = {}
-    _userStateDict[user_id]['state'] = "getImage"
-    _userStateDict[user_id][
-        'image'] = line_bot_api.get_message_content(message_id)
-    
-
-
-
-    # flex messageを送信
-    flexMessage(event)
 
 
 if __name__ == "__main__":
