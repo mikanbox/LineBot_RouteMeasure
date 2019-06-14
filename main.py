@@ -35,7 +35,7 @@ from PIL import Image
 import numpy as np
 
 
-global _userStateDict = {}
+_userStateDict = {}
 
 
 class ColorDot:
