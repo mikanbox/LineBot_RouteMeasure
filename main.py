@@ -35,7 +35,7 @@ from PIL import Image
 import numpy as np
 
 
-_userStateDict = {}
+global _userStateDict = {}
 
 
 class ColorDot:
@@ -271,14 +271,10 @@ def handle_image(event):
 
 
     # 画像データを取得する
-    _userStateDict = {}
     _userStateDict.setdefault(user_id,{})
     _userStateDict[user_id].setdefault('color',[])
-
-    # _userStateDict[user_id] = {}
     _userStateDict[user_id]['state'] = "getImage"
-    _userStateDict[user_id][
-        'image'] = line_bot_api.get_message_content(message_id)
+    _userStateDict[user_id]['image'] = line_bot_api.get_message_content(message_id)
     
 
 
