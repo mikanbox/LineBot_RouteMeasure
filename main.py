@@ -221,7 +221,7 @@ def handle_postback(event):
                                   )
         return
 
-    print(vars(_userStateDict))
+    # print(vars(_userStateDict))
 
     reply_txt = "エラー　色が存在しません。"
     if postback_msg == 'run':
@@ -271,6 +271,7 @@ def handle_image(event):
 
 
     # 画像データを取得する
+    _userStateDict = {}
     _userStateDict.setdefault(user_id,{})
     _userStateDict[user_id].setdefault('color',[])
 
