@@ -19,7 +19,6 @@ from linebot.models import (
 )
 import os
 from io import BytesIO
-# from tinydb import TinyDB, Query
 
 
 app = Flask(__name__)
@@ -92,10 +91,6 @@ class DotsColorList:
         return mes
 
 
-#データベースの作成
-# db = TinyDB('sample.json')
-
-
 bubble = BubbleContainer(
     direction='ltr',
     body=BoxComponent(
@@ -137,22 +132,19 @@ bubble = BubbleContainer(
                 style='secondary', height='sm',
                 action=PostbackAction(label='シアン 00ffff', data='c_cian'),
                 color='#44ffff'
+            ),
+            SeparatorComponent(),
+            ButtonComponent(
+                style='primary',margin='xxl',
+                action=PostbackAction(label='比較実行', data='run')
             )
-            # SeparatorComponent(),
-            # ButtonComponent(
-            #     style='primary',margin='xxl',
-            #     action=PostbackAction(label='比較実行', data='run')
-            # )
         ]
     )
 )
 
 
-
-
-def RunCompareLines(userid,img):
-    # image = BytesIO(_userStateDict[userid]['image'].content)
-    image = img
+def RunCompareLines(userid):
+    image = BytesIO(_userStateDict[userid]['image'].content)
     # image = BytesIO(message_content.content)
     # # Pillowで開く
     img = Image.open(image)
@@ -213,17 +205,7 @@ def handle_postback(event):
     print("user_id : " + user_id)
 
 
-    # if (user_id not in _userStateDict):
-    #     reply_txt = "先に画像を上げてね！"
-    #     line_bot_api.push_message(to=user_id,
-    #                               messages=TextSendMessage(text=reply_txt)
-    #                               )
-    #     return
-
-    if _userStateDict[user_id]['state'] != "getImage":
-
-    # que = Query()
-    # if not( db.search(que.id == user_id)):
+    if (user_id not in _userStateDict):
         reply_txt = "先に画像を上げてね！"
         line_bot_api.push_message(to=user_id,
                                   messages=TextSendMessage(text=reply_txt)
@@ -231,34 +213,32 @@ def handle_postback(event):
         return
 
 
-
-
-
     reply_txt = "エラー　色が存在しません。"
-    # if postback_msg == 'run':
-        # if len(_userStateDict[user_id]['color']) > 0:
-        #     # reply_txt = RunCompareLines(user_id)
-        #     # del(_userStateDict[user_id])
-        #     # db.remove(que.id == user_id)
+    if postback_msg == 'run':
+        if len(_userStateDict[user_id]['color']) > 0:
+            reply_txt = RunCompareLines(user_id)
+            # del(_userStateDict[user_id])
+        else:
+            reply_txt = "エラー　ルートの色が登録されてないよ"
+    else:
+        if 'color' not in _userStateDict[user_id]:
+            _userStateDict[user_id]['color'] = []
 
-        # else:
-        #     reply_txt = "エラー　ルートの色が登録されてないよ"
-    # else:
-    if postback_msg == 'c_red':
-        reply_txt = "赤色を登録したよ"
-        _userStateDict[user_id]['color'].append([[255, 0, 0], "red"])
-    elif postback_msg == 'c_blue':
-        reply_txt = "青色を登録したよ"
-        _userStateDict[user_id]['color'].append([[0, 0, 255], "blue"])
-    elif postback_msg == 'c_yellow':
-        reply_txt = "黄色を登録したよ"
-        _userStateDict[user_id]['color'].append([[255, 255, 0], "Yellow"])
-    elif postback_msg == 'c_cian':
-        reply_txt = "シアンを登録したよ"
-        _userStateDict[user_id]['color'].append([[0, 255, 255], "Cian"])
-    elif postback_msg == 'c_mazenta':
-        reply_txt = "マゼンタを登録したよ"
-        _userStateDict[user_id]['color'].append([[255, 0, 255], "Mazenta"])
+        if postback_msg == 'c_red':
+            reply_txt = "赤色を登録したよ"
+            _userStateDict[user_id]['color'].append([[255, 0, 0], "red"])
+        elif postback_msg == 'c_blue':
+            reply_txt = "青色を登録したよ"
+            _userStateDict[user_id]['color'].append([[0, 0, 255], "blue"])
+        elif postback_msg == 'c_yellow':
+            reply_txt = "黄色を登録したよ"
+            _userStateDict[user_id]['color'].append([[255, 255, 0], "Yellow"])
+        elif postback_msg == 'c_cian':
+            reply_txt = "シアンを登録したよ"
+            _userStateDict[user_id]['color'].append([[0, 255, 255], "Cian"])
+        elif postback_msg == 'c_mazenta':
+            reply_txt = "マゼンタを登録したよ"
+            _userStateDict[user_id]['color'].append([[255, 0, 255], "Mazenta"])
 
     line_bot_api.push_message(to=user_id,
                               messages=TextSendMessage(text=reply_txt)
@@ -304,15 +284,8 @@ def handle_message(event):
     user_id = event.source.user_id
     print("user_id : " + user_id)
 
-    if "開始" in message_txt:
-        _userStateDict[user_id] = {}
-        _userStateDict[user_id]['color'] = []
-        _userStateDict[user_id]['state'] = "getImage"
-        flexMessage(event)
-        return
+    reply_txt = "ルート画像を送ってね"
 
-
-    reply_txt = "はじめるときは「開始」っていってね"
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply_txt))
@@ -321,39 +294,25 @@ def handle_message(event):
 # 画像が来たときの反応
 @handler.add(MessageEvent, message=ImageMessage)
 def handle_image(event):
-    reply_txt = "ルートの色を先に登録してね"
+    reply_txt = ""
     message_id = event.message.id
     user_id = event.source.user_id
     print("user_id : " + user_id)
 
-    img = line_bot_api.get_message_content(message_id)
-
-
-
-    if len(_userStateDict[user_id]['color']) > 0:
-        reply_txt = RunCompareLines(user_id,img)
-        if (user_id in _userStateDict):
-            del(_userStateDict[user_id])
-
-    # db.insert({'id':user_id, 'state':True})
+    if (user_id in _userStateDict):
+        del(_userStateDict[user_id]['color'])
 
     # 画像データを取得する
-    # _userStateDict[user_id] = {}
-    # _userStateDict[user_id]['state'] = "getImage"
-    # _userStateDict[user_id][
-    #     'image'] = line_bot_api.get_message_content(message_id)
-    # _userStateDict[user_id]['color'] = []
-
-
-    line_bot_api.push_message(to=user_id,
-                          messages=TextSendMessage(text=reply_txt)
-                          )
+    _userStateDict[user_id] = {}
+    _userStateDict[user_id]['state'] = "getImage"
+    _userStateDict[user_id][
+        'image'] = line_bot_api.get_message_content(message_id)
     
 
 
 
     # flex messageを送信
-    # flexMessage(event)
+    flexMessage(event)
 
 
 if __name__ == "__main__":
