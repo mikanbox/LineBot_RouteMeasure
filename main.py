@@ -19,6 +19,7 @@ from linebot.models import (
 )
 import os
 from io import BytesIO
+import pprint
 
 
 app = Flask(__name__)
@@ -142,6 +143,15 @@ bubble = BubbleContainer(
     )
 )
 
+
+
+# class userTaskData:
+
+
+
+
+
+
 def RunCompareLines(userid):
     image = BytesIO(_userStateDict[userid]['image'].content)
     # image = BytesIO(message_content.content)
@@ -202,6 +212,7 @@ def handle_postback(event):
     postback_msg = event.postback.data
     print("user_id : " + user_id)
     print("getPostBack")
+    pprint(_userStateDict)
 
 
     if (user_id not in _userStateDict):
