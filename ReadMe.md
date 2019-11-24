@@ -4,14 +4,17 @@
 
 
 ## setup
+```
 heroku config:set CHANNEL_ACCESS_TOKEN="" --app imagelength
 heroku config:set CHANNEL_SECRET="" --app imagelength
 git remote add heroku heroku_git_url
-
+```
 ## 手元で動かす
+```
 export CHANNEL_ACCESS_TOKEN=xxxxxxxxxxxxxx
 export CHANNEL_SECRET=xxxxxxxxxxxxxx
 python main.py
+```
 FlaskのcallbackはPOSTメソッドonlyなので、ブラウザからは確認できないよ!!
 
 ## mainのコード概要
@@ -48,7 +51,9 @@ LINEのwebhook URLに登録
 
 
 - heroku log 見る
-  - heroku logs -a imagelength --tail
+```
+heroku logs -a imagelength --tail
+```
 
 ## loginできないときは下記を参考
 http://neos21.hatenablog.com/entry/2019/02/14/080000
